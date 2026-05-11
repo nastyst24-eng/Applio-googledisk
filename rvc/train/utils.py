@@ -1,5 +1,6 @@
 import os
-import glob
+import json
+import shutil
 import torch
 import numpy as np
 import soundfile as sf
@@ -41,9 +42,9 @@ def load_checkpoint(checkpoint_path, model, optimizer=None, load_opt=1):
         optimizer (torch.optim.Optimizer, optional): The optimizer to load the state from. Defaults to None.
         load_opt (int, optional): Whether to load the optimizer state. Defaults to 1.
     """
-    assert os.path.isfile(
-        checkpoint_path
-    ), f"Checkpoint file not found: {checkpoint_path}"
+    assert os.path.isfile(checkpoint_path), (
+        f"Checkpoint file not found: {checkpoint_path}"
+    )
 
     checkpoint_dict = torch.load(checkpoint_path, map_location="cpu", weights_only=True)
     checkpoint_dict = replace_keys_in_dict(
@@ -251,3 +252,16 @@ class HParams:
 
     def __repr__(self):
         return repr(self.__dict__)
+
+
+def sync_to_google_drive(src_path, dst_subdir):
+    gdrive_base = "/content/drive/MyDrive/Applio"
+    if not os.path.exists("/content/drive/MyDrive"):
+        return
+    dst_dir = os.path.join(gdrive_base, dst_subdir)
+    os.makedirs(dst_dir, exist_ok=True)
+    dst_path = os.path.join(dst_dir, os.path.basename(src_path))
+    try:
+        shutil.copy2(src_path, dst_path)
+    except Exception as e:
+        print(f"Google Drive sync failed for '{src_path}': {e}")

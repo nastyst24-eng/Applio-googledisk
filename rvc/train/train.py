@@ -37,6 +37,7 @@ from utils import (
     plot_spectrogram_to_numpy,
     save_checkpoint,
     summarize,
+    sync_to_google_drive,
 )
 
 # Zluda hijack
@@ -168,7 +169,15 @@ def main():
     """
     Main function to start the training process.
     """
-    global training_file_path, last_loss_gen_all, smoothed_loss_gen_history, loss_gen_history, loss_disc_history, smoothed_loss_disc_history, overtrain_save_epoch, gpus
+    global \
+        training_file_path, \
+        last_loss_gen_all, \
+        smoothed_loss_gen_history, \
+        loss_gen_history, \
+        loss_disc_history, \
+        smoothed_loss_disc_history, \
+        overtrain_save_epoch, \
+        gpus
 
     os.environ["MASTER_ADDR"] = "localhost"
     os.environ["MASTER_PORT"] = str(randint(20000, 55555))
@@ -640,7 +649,14 @@ def train_and_evaluate(
         cache (list): List to cache data in GPU memory.
         use_cpu (bool): Whether to use CPU for training.
     """
-    global global_step, lowest_value, loss_disc, consecutive_increases_gen, consecutive_increases_disc, smoothed_value_gen, smoothed_value_disc
+    global \
+        global_step, \
+        lowest_value, \
+        loss_disc, \
+        consecutive_increases_gen, \
+        consecutive_increases_disc, \
+        smoothed_value_gen, \
+        smoothed_value_disc
 
     if epoch == 1:
         lowest_value = {"step": 0, "value": float("inf"), "epoch": 0}
@@ -1031,6 +1047,20 @@ def train_and_evaluate(
                 os.path.join(experiment_dir, "D_" + checkpoint_suffix),
                 scaler,
             )
+            sync_to_google_drive(
+                os.path.join(experiment_dir, "G_" + checkpoint_suffix),
+                f"{model_name}/checkpoints",
+            )
+            sync_to_google_drive(
+                os.path.join(experiment_dir, "D_" + checkpoint_suffix),
+                f"{model_name}/checkpoints",
+            )
+            eval_dir = os.path.join(experiment_dir, "eval")
+            if os.path.exists(eval_dir):
+                for eval_file in os.listdir(eval_dir):
+                    eval_file_path = os.path.join(eval_dir, eval_file)
+                    if os.path.isfile(eval_file_path):
+                        sync_to_google_drive(eval_file_path, f"{model_name}/eval")
             if custom_save_every_weights:
                 model_add.append(
                     os.path.join(
@@ -1079,6 +1109,7 @@ def train_and_evaluate(
                         overtrain_info=overtrain_info,
                         vocoder=vocoder,
                     )
+                sync_to_google_drive(m, f"{model_name}/exported")
 
         if done:
             # Clean-up process IDs from config.json

@@ -39,6 +39,9 @@
 
 Applio is a powerful voice conversion tool focused on simplicity, quality, and performance. Whether you're an artist, developer, or researcher, Applio offers a straightforward platform for high-quality voice transformations. Its flexible design allows for customization through plugins and configurations, catering to a wide range of projects.
 
+## Important
+Added function for save models into google disk (e.g. testmodel.pth D_23333.pth G_23333.pth)
+
 ## Terms of Use and Commercial Usage
 
 Using Applio responsibly is essential.
